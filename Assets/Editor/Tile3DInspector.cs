@@ -10,7 +10,7 @@ public class Tile3DInspector : Editor
     HashSet<GameObject> prefabs = new HashSet<GameObject>();
     void OnEnable()
     {
-        foreach (var prefab in Resources.LoadAll<GameObject>("Tiles/"))
+        foreach (GameObject prefab in Resources.LoadAll<GameObject>("Tiles/"))
         {
             if (PrefabUtility.GetPrefabAssetType(prefab) != PrefabAssetType.NotAPrefab)
             {
@@ -30,7 +30,7 @@ public class Tile3DInspector : Editor
         }
 
         GUILayout.BeginHorizontal(GUILayout.ExpandHeight(true));
-        foreach (var prefab in prefabs)
+        foreach (GameObject prefab in prefabs)
         {
             if (GUILayout.Button(AssetPreview.GetAssetPreview(prefab), icons, GUILayout.Width(96), GUILayout.Height(96)))
             {
@@ -48,7 +48,7 @@ public class Tile3DInspector : Editor
     {
         GameObject[] gameObjects = Selection.gameObjects;
         List<GameObject> newGameObjects = new List<GameObject>(gameObjects.Length);
-        foreach (var selected in gameObjects)
+        foreach (GameObject selected in gameObjects)
         {
             if (selected.GetComponent<Tile3D>() == null) continue;
 

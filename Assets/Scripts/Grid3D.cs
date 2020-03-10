@@ -22,7 +22,7 @@ public class WallDictionary : Dictionary<Vector3, Wall3D> { }
 public class Grid3D : MonoBehaviour
 {
     [SerializeField]
-    private GameObject objeto;
+    private GameObject prefabTile;
 
     [SerializeField]
     private GameObject wallPrefab;
@@ -74,7 +74,7 @@ public class Grid3D : MonoBehaviour
 
     public void RefreshWalls()
     {
-        foreach (var wall in transform.GetComponentsInChildren<Wall3D>())
+        foreach (Wall3D wall in transform.GetComponentsInChildren<Wall3D>())
         {
             Vector3 pos = wall.transform.position.ToFixedHalfVector3();
             if (!walls.ContainsKey(pos))
@@ -86,7 +86,7 @@ public class Grid3D : MonoBehaviour
     public void RefreshTiles()
     {
         tiles.Clear();
-        foreach (var tile in transform.GetComponentsInChildren<Tile3D>())
+        foreach (Tile3D tile in transform.GetComponentsInChildren<Tile3D>())
         {
             Vector3Int pos = tile.transform.position.ToFixedVector3Int();
             if (!tiles.ContainsKey(pos))
@@ -129,7 +129,7 @@ public class Grid3D : MonoBehaviour
                     switch (toolbarSelected)
                     {
                         case 0: //add tile
-                            AddTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3Int());
+                            AddTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3Int(), prefabTile);
                             break;
                         case 1: //remove tile
                             RemoveTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3Int());
@@ -145,12 +145,13 @@ public class Grid3D : MonoBehaviour
                             break;
                     }
                 }
+                e.Use();
                 Selection.activeGameObject = gameObject;
             }
         }
     }
 
-    private void RemoveTileAtPosition(Vector3Int position)
+    private static void RemoveTileAtPosition(Vector3Int position)
     {
         if (!tiles.ContainsKey(position))
         {
@@ -158,27 +159,57 @@ public class Grid3D : MonoBehaviour
             return;
         }
 
-
         Tile3D tile = tiles[position];
-        tiles.Remove(position);
+        foreach (Vector3Int tilePos in GetTilePositions(position,tile.Size))
+        {
+            tiles.Remove(tilePos);
+        }
         DestroyImmediate(tile.gameObject);
     }
 
-    private void AddTileAtPosition(Vector3Int position)
+    private static void AddTileAtPosition(Vector3Int position, GameObject prefabTile)
     {
-        if (tiles.ContainsKey(position))
+        if (!TileFitsInPosition(position, prefabTile.GetComponent<Tile3D>()))
         {
-            Debug.Log("Already a tile in place");
+            Debug.LogWarning("Already a tile in place");
             return;
         }
-        
-        //Tile3D newTile = Instantiate(objeto, position, Quaternion.identity, transform).GetComponent<Tile3D>();
 
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(objeto, transform);
+        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabTile, FindObjectOfType<Grid3D>().transform);
         go.transform.position = position;
 
         Tile3D newTile = go.GetComponent<Tile3D>();
-        tiles.Add(position, newTile);
+        
+        foreach (Vector3Int tilePos in GetTilePositions(position, newTile.Size))
+        {
+            tiles.Add(tilePos, newTile);
+        }
+    }
+
+    private static bool TileFitsInPosition(Vector3Int position, Tile3D tile3D)
+    {
+        foreach (Vector3Int tile in GetTilePositions(position, tile3D.Size))
+        {
+            if (tiles.ContainsKey(tile))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static IEnumerable<Vector3Int> GetTilePositions(Vector3Int position, Vector3Int size)
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; x < size.y; x++)
+            {
+                for (int z = 0; x < size.z; x++)
+                {
+                    yield return new Vector3Int(x,y,z) + position;
+                }
+            }
+        }
     }
 
     private void AddWallAtPosition(Vector3 position)
@@ -237,9 +268,9 @@ public class Grid3D : MonoBehaviour
 
                 if (toolbarSelected == 0 || toolbarSelected == 1)
                 {
-                    foreach (var varX in variationsFloats)
+                    foreach (float varX in variationsFloats)
                     {
-                        foreach (var varZ in variationsFloats)
+                        foreach (float varZ in variationsFloats)
                         {
                             Vector3 pos = hitPoint.ToFixedVector3Int() + new Vector3(varX,0, varZ);
 

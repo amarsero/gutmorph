@@ -6,7 +6,7 @@ using UnityEngine;
 [CustomEditor(typeof(Grid3D)), CanEditMultipleObjects]
 public class Grid3DInspector : Editor
 {
-    private SerializedProperty objeto;
+    private SerializedProperty prefabTile;
     private SerializedProperty gridSize;
     private SerializedProperty tiles;
     private SerializedProperty currentLevel;
@@ -21,7 +21,7 @@ public class Grid3DInspector : Editor
     {
         // Fetch the objects from the GameObject script to display in the inspector
         gridSize = serializedObject.FindProperty("gridSize");
-        objeto = serializedObject.FindProperty("objeto");
+        prefabTile = serializedObject.FindProperty("prefabTile");
         tiles = serializedObject.FindProperty("tiles");
         currentLevel = serializedObject.FindProperty("_currentLevel");
         plane = serializedObject.FindProperty("plane");

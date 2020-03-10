@@ -5,6 +5,8 @@ using UnityEngine;
 [SelectionBase]
 public class Tile3D : MonoBehaviour
 {
+    public Vector3Int Size;
+    
     // Start is called before the first frame update
     void Start()
     {

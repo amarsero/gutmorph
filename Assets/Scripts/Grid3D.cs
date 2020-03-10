@@ -74,6 +74,7 @@ public class Grid3D : MonoBehaviour
 
     public void RefreshWalls()
     {
+        walls.Clear();
         foreach (Wall3D wall in transform.GetComponentsInChildren<Wall3D>())
         {
             Vector3 pos = wall.transform.position.ToFixedHalfVector3();
@@ -221,7 +222,7 @@ public class Grid3D : MonoBehaviour
         }
 
         Quaternion rot = Quaternion.identity;
-        if (position.z % 1f > 0f)
+        if (Math.Abs(position.x % 1f) > 0.2f)
         {
             rot = Quaternion.Euler(0, 90, 0);
         }
@@ -266,7 +267,7 @@ public class Grid3D : MonoBehaviour
                 Vector3 hitPoint = ray.GetPoint(enter);
                 Gizmos.color = gizmoColor;
 
-                if (toolbarSelected == 0 || toolbarSelected == 1)
+                if (toolbarSelected == 0 || toolbarSelected == 1 || toolbarSelected == 2 || toolbarSelected == 3)
                 {
                     foreach (float varX in variationsFloats)
                     {
@@ -297,12 +298,12 @@ public static class Grid3DExtensionMethods
     {
         Vector3 final = new Vector3(Mathf.Round(pos.x), Mathf.Round(pos.y), Mathf.Round(pos.z));
 
-        float xRem = pos.x % 1;
+        float xRem = Math.Abs(pos.x % 1);
         bool xFar = xRem > 0.5f;
         xRem = xFar ? 1 - xRem : xRem;
-        float zRem = pos.z % 1;
+        float zRem = Math.Abs(pos.z % 1);
         bool zFar = zRem > 0.5f;
-        xRem = zFar ? 1 - zRem : zRem;
+        zRem = zFar ? 1 - zRem : zRem;
 
         if (xRem > zRem)
         {
@@ -310,7 +311,6 @@ public static class Grid3DExtensionMethods
                 final.x = final.x + 0.5f;
             else
                 final.x = final.x - 0.5f;
-
         }
         else
         {

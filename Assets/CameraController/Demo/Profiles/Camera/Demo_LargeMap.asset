@@ -36,11 +36,11 @@ MonoBehaviour:
   BoostMove_SpeedMulti: 2
   Height: 20
   DownMax: -125
-  UpMax: 75
+  UpMax: 20
   LeftMax: -125
   RightMax: 125
   ZoomMin: 2
-  ZoomMax: 100
+  ZoomMax: 20
   OrthNearPlane: -1024
   OrthFarPlane: 512
   FOVMin: 40

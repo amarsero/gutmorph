@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-#if UNITY_EDITOR
 using System.ComponentModel;
 using System.Security.Cryptography;
 using UnityEditor;
@@ -59,17 +58,16 @@ public class Grid3D : MonoBehaviour
 
     private void OnEnable()
     {
-        //if (!Application.isEditor)
-        //{
-        //    Destroy(this);
-        //}
+        if (!Application.isEditor)
+        {
+            return;
+        }
         SceneView.duringSceneGui += OnScene;
         plane = new Plane(Vector3.up, -CurrentLevel); 
         gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
         variationsFloats = new[] { -2f, -1f, 0f, 1f };
         RefreshTiles();
         RefreshWalls();
-
     }
 
     public void RefreshWalls()
@@ -111,7 +109,7 @@ public class Grid3D : MonoBehaviour
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
 
-        if (insideWindow && editTiles && Selection.activeGameObject == gameObject)
+        if (insideWindow && editTiles && Selection.activeGameObject.GetComponent<Grid3D>() != null)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
             mousePos = e.mousePosition;
@@ -161,7 +159,7 @@ public class Grid3D : MonoBehaviour
         }
 
         Tile3D tile = tiles[position];
-        foreach (Vector3Int tilePos in GetTilePositions(position,tile.Size))
+        foreach (Vector3Int tilePos in GetTileSizePositions(position,tile.Size))
         {
             tiles.Remove(tilePos);
         }
@@ -181,7 +179,7 @@ public class Grid3D : MonoBehaviour
 
         Tile3D newTile = go.GetComponent<Tile3D>();
         
-        foreach (Vector3Int tilePos in GetTilePositions(position, newTile.Size))
+        foreach (Vector3Int tilePos in GetTileSizePositions(position, newTile.Size))
         {
             tiles.Add(tilePos, newTile);
         }
@@ -189,7 +187,7 @@ public class Grid3D : MonoBehaviour
 
     private static bool TileFitsInPosition(Vector3Int position, Tile3D tile3D)
     {
-        foreach (Vector3Int tile in GetTilePositions(position, tile3D.Size))
+        foreach (Vector3Int tile in GetTileSizePositions(position, tile3D.Size))
         {
             if (tiles.ContainsKey(tile))
             {
@@ -199,7 +197,19 @@ public class Grid3D : MonoBehaviour
         return true;
     }
 
-    private static IEnumerable<Vector3Int> GetTilePositions(Vector3Int position, Vector3Int size)
+    private static bool WallFitsInPosition(Vector3 position, Wall3D wall3D)
+    {
+        foreach (Vector3 wall in GetWallSizePositions(position, wall3D.Size))
+        {
+            if (walls.ContainsKey(wall))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static IEnumerable<Vector3Int> GetTileSizePositions(Vector3Int position, Vector3Int size)
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -213,9 +223,23 @@ public class Grid3D : MonoBehaviour
         }
     }
 
+    private static IEnumerable<Vector3> GetWallSizePositions(Vector3 position, Vector3Int size)
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; x < size.y; x++)
+            {
+                for (int z = 0; x < size.z; x++)
+                {
+                    yield return new Vector3(x, y, z) + position;
+                }
+            }
+        }
+    }
+
     private void AddWallAtPosition(Vector3 position)
     {
-        if (walls.ContainsKey(position))
+        if (!WallFitsInPosition(position, wallPrefab.GetComponent<Wall3D>()))
         {
             Debug.Log("Already a wall in place");
             return;
@@ -232,7 +256,11 @@ public class Grid3D : MonoBehaviour
         go.transform.rotation = rot;
         
         Wall3D newWall = go.GetComponent<Wall3D>();
-        walls.Add(position, newWall);
+
+        foreach (Vector3 wallPos in GetWallSizePositions(position, newWall.Size))
+        {
+            walls.Add(wallPos, newWall);
+        }
 
         Debug.Log($"Wall at {position} rotation: {rot == Quaternion.identity}");
     }
@@ -247,7 +275,12 @@ public class Grid3D : MonoBehaviour
 
 
         Wall3D wall = walls[position];
-        walls.Remove(position);
+
+        foreach (Vector3 wallPos in GetWallSizePositions(position, wall.Size))
+        {
+            walls.Remove(wallPos);
+        }
+
         DestroyImmediate(wall.gameObject);
     }
 
@@ -329,8 +362,3 @@ public static class Grid3DExtensionMethods
     }
 }
 
-
-
-
-
-#endif

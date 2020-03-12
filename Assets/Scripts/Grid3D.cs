@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using System.ComponentModel;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using UnityEditor;
@@ -33,6 +36,8 @@ public class Grid3D : MonoBehaviour
     [SerializeField]
     private Vector2Int gridSize;
 
+    public static Grid3D Instance;
+
     private static TileDictionary tiles = new TileDictionary();
     private static WallDictionary walls = new WallDictionary();
     private static EntityDictionary entities = new EntityDictionary();
@@ -41,10 +46,17 @@ public class Grid3D : MonoBehaviour
 
     [SerializeField]
     private static int _currentLevel;
+    private static readonly System.Reactive.Subjects.BehaviorSubject<int> _currentLevelSubject = new BehaviorSubject<int>(0);
+    public static IObservable<int> CurrenLevelObservable = _currentLevelSubject.AsObservable();
     public static int CurrentLevel
     {
         get => _currentLevel;
-        set { _currentLevel = value; plane = new Plane(Vector3.up, -value); }
+        set
+        {
+            _currentLevel = value;
+            plane = new Plane(Vector3.up, -value);
+            _currentLevelSubject.OnNext(value);
+        }
     }
 
     [SerializeField]
@@ -60,12 +72,13 @@ public class Grid3D : MonoBehaviour
 
     private void OnEnable()
     {
+        Instance = this;
         if (!Application.isEditor)
         {
             return;
         }
         SceneView.duringSceneGui += OnScene;
-        plane = new Plane(Vector3.up, -CurrentLevel); 
+        plane = new Plane(Vector3.up, -CurrentLevel);
         _gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
         RefreshTiles();
         RefreshWalls();
@@ -82,7 +95,7 @@ public class Grid3D : MonoBehaviour
             {
                 Debug.Log($"2 walls on the same space at {pos}");
                 continue;
-            } 
+            }
             walls.Add(pos, wall);
         }
         Debug.Log($"There are: {walls.Count} walls");
@@ -135,7 +148,13 @@ public class Grid3D : MonoBehaviour
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
 
-        if (insideWindow && editTiles && Selection.activeGameObject.GetComponent<Grid3D>() != null)
+        //TODO: Add floor/roof
+
+        //TODO: Maybe put each Wall/Tile/Entity/Floor as a class of Grid3D ?
+        
+        //TODO: Make selection of tile
+
+        if (insideWindow && editTiles && Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Grid3D>() != null)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
             mousePos = e.mousePosition;
@@ -177,7 +196,7 @@ public class Grid3D : MonoBehaviour
         }
 
         Tile3D tile = tiles[position];
-        foreach (Vector3Int tilePos in GetTileSizePositions(position,tile.Size))
+        foreach (Vector3Int tilePos in GetTileSizePositions(position, tile.Size))
         {
             tiles.Remove(tilePos);
         }
@@ -192,11 +211,11 @@ public class Grid3D : MonoBehaviour
             return;
         }
 
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabTile, FindObjectOfType<Grid3D>().transform);
+        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabTile, Instance.transform);
         go.transform.position = position;
 
         Tile3D newTile = go.GetComponent<Tile3D>();
-        
+
         foreach (Vector3Int tilePos in GetTileSizePositions(position, newTile.Size))
         {
             tiles.Add(tilePos, newTile);
@@ -235,7 +254,7 @@ public class Grid3D : MonoBehaviour
             {
                 for (int z = 0; x < size.z; x++)
                 {
-                    yield return new Vector3Int(x,y,z) + position;
+                    yield return new Vector3Int(x, y, z) + position;
                 }
             }
         }
@@ -269,10 +288,10 @@ public class Grid3D : MonoBehaviour
             rot = Quaternion.Euler(0, 90, 0);
         }
 
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(wallPrefab, transform);
+        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(wallPrefab, Instance.transform);
         go.transform.position = position;
         go.transform.rotation = rot;
-        
+
         Wall3D newWall = go.GetComponent<Wall3D>();
 
         foreach (Vector3 wallPos in GetWallSizePositions(position, newWall.Size))
@@ -315,7 +334,7 @@ public class Grid3D : MonoBehaviour
         }
 
         var ray = camera.ScreenPointToRay(point);
-        
+
         if (plane.Raycast(ray, out float enter))
         {
             //Get the point that is clicked 
@@ -329,7 +348,7 @@ public class Grid3D : MonoBehaviour
 
     Color _gizmoColor;
     private readonly float[] _variationsFloats = new[] { -2f, -1f, 0f, 1f };
-    private readonly float[] _centerVariations = new float[] {-1f, 0f};
+    private readonly float[] _centerVariations = new float[] { -1f, 0f };
 
     private void OnDrawGizmos()
     {
@@ -343,7 +362,7 @@ public class Grid3D : MonoBehaviour
             {
                 foreach (float varZ in _variationsFloats)
                 {
-                    Vector3 pos = planePos.ToFixedVector3Int() + new Vector3(varX,0, varZ);
+                    Vector3 pos = planePos.ToFixedVector3Int() + new Vector3(varX, 0, varZ);
 
                     Gizmos.DrawRay(pos, Vector3.back * 2);
                     Gizmos.DrawRay(pos, Vector3.forward * 2);
@@ -360,11 +379,15 @@ public class Grid3D : MonoBehaviour
 
 }
 
+//TODO: Put walls, entities and tiles each in it's own gameobject child of Grid
+
+
 public static class Grid3DExtensionMethods
 {
     public static Vector3 ToFixedHalfVector3(this Vector3 pos)
     {
-        Vector3 final = new Vector3(Mathf.Round(pos.x), Mathf.Round(pos.y), Mathf.Round(pos.z));
+        Vector3 final = new Vector3(Mathf.Round(pos.x * 2), Mathf.Round(pos.y * 2), Mathf.Round(pos.z * 2));
+        final /= 2;
 
         float xRem = Math.Abs(pos.x % 1);
         bool xFar = xRem > 0.5f;
@@ -373,19 +396,30 @@ public static class Grid3DExtensionMethods
         bool zFar = zRem > 0.5f;
         zRem = zFar ? 1 - zRem : zRem;
 
-        if (xRem > zRem)
+        if (xRem > 0.25f && zRem > 0.25f || xRem < 0.25f && zRem < 0.25f)
         {
-            if (xFar)
-                final.x = final.x + 0.5f;
+            if (xRem > zRem)
+            {
+                if (xFar)
+                {
+                    final.x = final.x - Mathf.Sign(pos.x) * 0.5f;
+                }
+                else
+                {
+                    final.x = final.x + Mathf.Sign(pos.x) * 0.5f;
+                }
+            }
             else
-                final.x = final.x - 0.5f;
-        }
-        else
-        {
-            if (zFar)
-                final.z = final.z + 0.5f;
-            else
-                final.z = final.z - 0.5f;
+            {
+                if (zFar)
+                {
+                    final.z = final.z - Mathf.Sign(pos.z) * 0.5f;
+                }
+                else
+                {
+                    final.z = final.z + Mathf.Sign(pos.z) * 0.5f;
+                }
+            }
         }
 
         return final;

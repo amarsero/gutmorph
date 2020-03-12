@@ -47,7 +47,7 @@ public class Grid3D : MonoBehaviour
     [SerializeField]
     private static int _currentLevel;
     private static readonly System.Reactive.Subjects.BehaviorSubject<int> _currentLevelSubject = new BehaviorSubject<int>(0);
-    public static IObservable<int> CurrenLevelObservable = _currentLevelSubject.AsObservable();
+    public static IObservable<object> CurrenLevelObservable = _currentLevelSubject.Select(x => (object)x);
     public static int CurrentLevel
     {
         get => _currentLevel;
@@ -84,6 +84,9 @@ public class Grid3D : MonoBehaviour
         RefreshWalls();
         RefreshEntities();
     }
+
+    public void IncreaseLevel() => CurrentLevel += 1;
+    public void DecreaseLevel() => CurrentLevel -= 1;
 
     public void RefreshWalls()
     {
@@ -153,7 +156,7 @@ public class Grid3D : MonoBehaviour
         //TODO: Maybe put each Wall/Tile/Entity/Floor as a class of Grid3D ?
         
         //TODO: Make selection of tile
-
+        
         if (insideWindow && editTiles && Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Grid3D>() != null)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));

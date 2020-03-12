@@ -39,14 +39,14 @@ public class Grid3DInspector : Editor
 
         //Level
         GUILayout.BeginHorizontal();
-        GUILayout.Label($"Level: {currentLevel.intValue}");
+        GUILayout.Label($"Level: {Grid3D.CurrentLevel}");
         if (GUILayout.Button("↓"))
         {
-            ((Grid3D)target).CurrentLevel -= 1;
+            Grid3D.CurrentLevel -= 1;
         }
         if (GUILayout.Button("↑"))
         {
-            ((Grid3D)target).CurrentLevel += 1;
+            Grid3D.CurrentLevel += 1;
         }
         GUILayout.EndHorizontal();
 

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine.Tilemaps;
@@ -16,6 +17,9 @@ public class TileDictionary : Dictionary<Vector3Int, Tile3D> { }
 
 [Serializable]
 public class WallDictionary : Dictionary<Vector3, Wall3D> { }
+
+[Serializable]
+public class EntityDictionary : Dictionary<Vector3Int, Entity3D> { }
 
 [ExecuteInEditMode]
 public class Grid3D : MonoBehaviour
@@ -31,15 +35,13 @@ public class Grid3D : MonoBehaviour
 
     private static TileDictionary tiles = new TileDictionary();
     private static WallDictionary walls = new WallDictionary();
+    private static EntityDictionary entities = new EntityDictionary();
 
-    [HideInInspector]
-    [SerializeField]
-    private Plane plane;
-    private Ray ray;
+    private static Plane plane;
 
     [SerializeField]
-    private int _currentLevel;
-    public int CurrentLevel
+    private static int _currentLevel;
+    public static int CurrentLevel
     {
         get => _currentLevel;
         set { _currentLevel = value; plane = new Plane(Vector3.up, -value); }
@@ -64,10 +66,10 @@ public class Grid3D : MonoBehaviour
         }
         SceneView.duringSceneGui += OnScene;
         plane = new Plane(Vector3.up, -CurrentLevel); 
-        gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
-        variationsFloats = new[] { -2f, -1f, 0f, 1f };
+        _gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
         RefreshTiles();
         RefreshWalls();
+        RefreshEntities();
     }
 
     public void RefreshWalls()
@@ -76,8 +78,12 @@ public class Grid3D : MonoBehaviour
         foreach (Wall3D wall in transform.GetComponentsInChildren<Wall3D>())
         {
             Vector3 pos = wall.transform.position.ToFixedHalfVector3();
-            if (!walls.ContainsKey(pos))
-                walls.Add(pos, wall);
+            if (walls.ContainsKey(pos))
+            {
+                Debug.Log($"2 walls on the same space at {pos}");
+                continue;
+            } 
+            walls.Add(pos, wall);
         }
         Debug.Log($"There are: {walls.Count} walls");
     }
@@ -88,10 +94,30 @@ public class Grid3D : MonoBehaviour
         foreach (Tile3D tile in transform.GetComponentsInChildren<Tile3D>())
         {
             Vector3Int pos = tile.transform.position.ToFixedVector3Int();
-            if (!tiles.ContainsKey(pos))
-                tiles.Add(pos, tile);
+            if (tiles.ContainsKey(pos))
+            {
+                Debug.Log($"2 tiles on the same space at {pos}");
+                continue;
+            }
+            tiles.Add(pos, tile);
         }
         Debug.Log($"There are: {tiles.Count} tiles");
+    }
+
+    public void RefreshEntities()
+    {
+        entities.Clear();
+        foreach (Entity3D entity in transform.GetComponentsInChildren<Entity3D>())
+        {
+            Vector3Int pos = entity.transform.position.ToFixedVector3Int();
+            if (entities.ContainsKey(pos))
+            {
+                Debug.Log($"2 entities on the same space at {pos}");
+                continue;
+            }
+            entities.Add(pos, entity);
+        }
+        Debug.Log($"There are: {entities.Count} entities");
     }
 
     void OnScene(SceneView scene)
@@ -115,16 +141,8 @@ public class Grid3D : MonoBehaviour
             mousePos = e.mousePosition;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                ray = Camera.current.ScreenPointToRay(new Vector3(e.mousePosition.x,
-                    -e.mousePosition.y + Camera.current.pixelHeight));
-
-                //Initialise the enter variable
-
-                if (plane.Raycast(ray, out float enter))
+                if (MouseOnPlane(mousePos, out Vector3 hitPoint))
                 {
-                    //Get the point that is clicked 
-                    Vector3 hitPoint = ray.GetPoint(enter);
-
                     switch (toolbarSelected)
                     {
                         case 0: //add tile
@@ -284,39 +302,56 @@ public class Grid3D : MonoBehaviour
         DestroyImmediate(wall.gameObject);
     }
 
-    Color gizmoColor;
-    private float[] variationsFloats;
-    private float[] centerVariations = new float[] {-1f, 0f};
-    void OnDrawGizmos()
+    //Returns true and the position of the mouse in the plane, else false
+    public static bool MouseOnPlane(Vector2 mousePosition, out Vector3 planePosition)
     {
-        if (insideWindow && editTiles)
+        Camera camera = Camera.current ?? Camera.main;
+        Vector3 point = new Vector3(mousePosition.x,
+            mousePosition.y);
+
+        if (Camera.current != null)
         {
-            ray = Camera.current.ScreenPointToRay(new Vector3(mousePos.x,
-                -mousePos.y + Camera.current.pixelHeight));
+            point.y = -point.y + camera.pixelHeight;
+        }
 
-            if (plane.Raycast(ray, out float enter))
+        var ray = camera.ScreenPointToRay(point);
+        
+        if (plane.Raycast(ray, out float enter))
+        {
+            //Get the point that is clicked 
+            planePosition = ray.GetPoint(enter);
+            return true;
+        }
+
+        planePosition = Vector3.zero;
+        return false;
+    }
+
+    Color _gizmoColor;
+    private readonly float[] _variationsFloats = new[] { -2f, -1f, 0f, 1f };
+    private readonly float[] _centerVariations = new float[] {-1f, 0f};
+
+    private void OnDrawGizmos()
+    {
+        if (!insideWindow || !editTiles || !MouseOnPlane(mousePos, out Vector3 planePos)) return;
+
+        Gizmos.color = _gizmoColor;
+
+        if (toolbarSelected == 0 || toolbarSelected == 1 || toolbarSelected == 2 || toolbarSelected == 3)
+        {
+            foreach (float varX in _variationsFloats)
             {
-                //Get the point that is clicked 
-                Vector3 hitPoint = ray.GetPoint(enter);
-                Gizmos.color = gizmoColor;
-
-                if (toolbarSelected == 0 || toolbarSelected == 1 || toolbarSelected == 2 || toolbarSelected == 3)
+                foreach (float varZ in _variationsFloats)
                 {
-                    foreach (float varX in variationsFloats)
-                    {
-                        foreach (float varZ in variationsFloats)
-                        {
-                            Vector3 pos = hitPoint.ToFixedVector3Int() + new Vector3(varX,0, varZ);
+                    Vector3 pos = planePos.ToFixedVector3Int() + new Vector3(varX,0, varZ);
 
-                            Gizmos.DrawRay(pos, Vector3.back * 2);
-                            Gizmos.DrawRay(pos, Vector3.forward * 2);
-                            Gizmos.DrawRay(pos, Vector3.left * 2);
-                            Gizmos.DrawRay(pos, Vector3.right * 2);
-                            if (centerVariations.Any(x => x == varX) && centerVariations.Any(x => x == varZ))
-                            {
-                                Gizmos.DrawRay(pos, Vector3.up);
-                            }
-                        }
+                    Gizmos.DrawRay(pos, Vector3.back * 2);
+                    Gizmos.DrawRay(pos, Vector3.forward * 2);
+                    Gizmos.DrawRay(pos, Vector3.left * 2);
+                    Gizmos.DrawRay(pos, Vector3.right * 2);
+                    if (_centerVariations.Any(x => x == varX) && _centerVariations.Any(x => x == varZ))
+                    {
+                        Gizmos.DrawRay(pos, Vector3.up);
                     }
                 }
             }

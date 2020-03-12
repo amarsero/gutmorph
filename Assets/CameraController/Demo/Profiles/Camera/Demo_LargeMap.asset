@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Demo_LargeMap
   m_EditorClassIdentifier: 
   MoveMode: 0
-  Move_NearScreenEdge: 1
+  Move_NearScreenEdge: 0
   ScreenBorder: 50
   Can_Rotate: 1
   Use_SpeedBoost: 1
@@ -27,7 +27,7 @@ MonoBehaviour:
   RotateLeft: 113
   RotateRight: 101
   SpeedBoostKey: 304
-  Move_Speed: 0.4
+  Move_Speed: 0.2
   Move_SpeedMulti: 1
   Zoom_Speed: 0.5
   Zoom_SpeedMulti: 1
@@ -35,10 +35,10 @@ MonoBehaviour:
   Rotate_SpeedMulti: 1
   BoostMove_SpeedMulti: 2
   Height: 20
-  DownMax: -125
-  UpMax: 20
-  LeftMax: -125
-  RightMax: 125
+  DownMax: -30
+  UpMax: -14.728636
+  LeftMax: -10
+  RightMax: 10
   ZoomMin: 2
   ZoomMax: 20
   OrthNearPlane: -1024

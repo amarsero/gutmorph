@@ -112,7 +112,7 @@ namespace Lean.Localization
 							{
 								var token = default(LeanToken);
 
-								if (buffer.Length > 0 && LeanLocalization.CurrentTokens.TryGetValue(buffer.ToString(), out token) == true) // TODO: Avoid ToString here?
+								if (buffer.Length > 0 && LeanLocalization.CurrentTokens.TryGetValue(buffer.ToString(), out token) == true)
 								{
 									current.Append(token.Value);
 

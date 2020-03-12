@@ -16,25 +16,26 @@ using UnityEngine.Tilemaps;
 
 
 [Serializable]
-public class TileDictionary : Dictionary<Vector3Int, Tile3D> { }
+public class TileDictionary : Dictionary<Vector3, Tile3D> { }
 
 [Serializable]
 public class WallDictionary : Dictionary<Vector3, Wall3D> { }
 
 [Serializable]
-public class EntityDictionary : Dictionary<Vector3Int, Entity3D> { }
+public class EntityDictionary : Dictionary<Vector3, Entity3D> { }
+
 
 [ExecuteInEditMode]
 public class Grid3D : MonoBehaviour
 {
     [SerializeField]
-    private GameObject prefabTile;
-
+    private GameObject defaultFloorPrefab;
     [SerializeField]
-    private GameObject wallPrefab;
-
+    private GameObject defaultTilePrefab;
     [SerializeField]
-    private Vector2Int gridSize;
+    private GameObject defaultWallPrefab;
+
+    public FloorGrid3D floorGrid = new FloorGrid3D();
 
     public static Grid3D Instance;
 
@@ -66,7 +67,7 @@ public class Grid3D : MonoBehaviour
 
     [SerializeField]
     [HideInInspector]
-    private int toolbarSelected = 0;
+    public int toolbarSelected = 0;
 
     private Vector2 mousePos;
 
@@ -80,9 +81,11 @@ public class Grid3D : MonoBehaviour
         SceneView.duringSceneGui += OnScene;
         plane = new Plane(Vector3.up, -CurrentLevel);
         _gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
+
         RefreshTiles();
         RefreshWalls();
         RefreshEntities();
+        floorGrid.Refresh();
     }
 
     public void IncreaseLevel() => CurrentLevel += 1;
@@ -109,7 +112,7 @@ public class Grid3D : MonoBehaviour
         tiles.Clear();
         foreach (Tile3D tile in transform.GetComponentsInChildren<Tile3D>())
         {
-            Vector3Int pos = tile.transform.position.ToFixedVector3Int();
+            Vector3 pos = tile.transform.position.ToFixedVector3();
             if (tiles.ContainsKey(pos))
             {
                 Debug.Log($"2 tiles on the same space at {pos}");
@@ -125,7 +128,7 @@ public class Grid3D : MonoBehaviour
         entities.Clear();
         foreach (Entity3D entity in transform.GetComponentsInChildren<Entity3D>())
         {
-            Vector3Int pos = entity.transform.position.ToFixedVector3Int();
+            Vector3 pos = entity.transform.position.ToFixedVector3();
             if (entities.ContainsKey(pos))
             {
                 Debug.Log($"2 entities on the same space at {pos}");
@@ -167,17 +170,22 @@ public class Grid3D : MonoBehaviour
                 {
                     switch (toolbarSelected)
                     {
-                        case 0: //add tile
-                            AddTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3Int(), prefabTile);
+                        case 0: //add floor
+                            floorGrid.Add(hitPoint, defaultFloorPrefab);
                             break;
-                        case 1: //remove tile
-                            RemoveTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3Int());
+                        case 1: //add tile
+                            AddTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3(), defaultTilePrefab);
                             break;
                         case 2: //add wall
-                            Debug.Log($"Clicked on: {hitPoint}");
                             AddWallAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedHalfVector3());
                             break;
-                        case 3: //remove wall
+                        case 3: //remove floor
+                            floorGrid.Remove(hitPoint);
+                            break;
+                        case 4: //remove tile
+                            RemoveTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3());
+                            break;
+                        case 5: //remove wall
                             RemoveWallAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedHalfVector3());
                             break;
                         default:
@@ -190,7 +198,7 @@ public class Grid3D : MonoBehaviour
         }
     }
 
-    private static void RemoveTileAtPosition(Vector3Int position)
+    private static void RemoveTileAtPosition(Vector3 position)
     {
         if (!tiles.ContainsKey(position))
         {
@@ -199,14 +207,14 @@ public class Grid3D : MonoBehaviour
         }
 
         Tile3D tile = tiles[position];
-        foreach (Vector3Int tilePos in GetTileSizePositions(position, tile.Size))
+        foreach (Vector3 tilePos in GetTileSizePositions(position, tile.Size))
         {
             tiles.Remove(tilePos);
         }
         DestroyImmediate(tile.gameObject);
     }
 
-    private static void AddTileAtPosition(Vector3Int position, GameObject prefabTile)
+    private static void AddTileAtPosition(Vector3 position, GameObject prefabTile)
     {
         if (!TileFitsInPosition(position, prefabTile.GetComponent<Tile3D>()))
         {
@@ -219,15 +227,15 @@ public class Grid3D : MonoBehaviour
 
         Tile3D newTile = go.GetComponent<Tile3D>();
 
-        foreach (Vector3Int tilePos in GetTileSizePositions(position, newTile.Size))
+        foreach (Vector3 tilePos in GetTileSizePositions(position, newTile.Size))
         {
             tiles.Add(tilePos, newTile);
         }
     }
 
-    private static bool TileFitsInPosition(Vector3Int position, Tile3D tile3D)
+    private static bool TileFitsInPosition(Vector3 position, Tile3D tile3D)
     {
-        foreach (Vector3Int tile in GetTileSizePositions(position, tile3D.Size))
+        foreach (Vector3 tile in GetTileSizePositions(position, tile3D.Size))
         {
             if (tiles.ContainsKey(tile))
             {
@@ -249,7 +257,7 @@ public class Grid3D : MonoBehaviour
         return true;
     }
 
-    private static IEnumerable<Vector3Int> GetTileSizePositions(Vector3Int position, Vector3Int size)
+    public static IEnumerable<Vector3> GetTileSizePositions(Vector3 position, Vector3 size)
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -257,13 +265,13 @@ public class Grid3D : MonoBehaviour
             {
                 for (int z = 0; x < size.z; x++)
                 {
-                    yield return new Vector3Int(x, y, z) + position;
+                    yield return new Vector3(x, y, z) + position;
                 }
             }
         }
     }
 
-    private static IEnumerable<Vector3> GetWallSizePositions(Vector3 position, Vector3Int size)
+    public static IEnumerable<Vector3> GetWallSizePositions(Vector3 position, Vector3 size)
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -279,7 +287,7 @@ public class Grid3D : MonoBehaviour
 
     private void AddWallAtPosition(Vector3 position)
     {
-        if (!WallFitsInPosition(position, wallPrefab.GetComponent<Wall3D>()))
+        if (!WallFitsInPosition(position, defaultWallPrefab.GetComponent<Wall3D>()))
         {
             Debug.Log("Already a wall in place");
             return;
@@ -291,7 +299,7 @@ public class Grid3D : MonoBehaviour
             rot = Quaternion.Euler(0, 90, 0);
         }
 
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(wallPrefab, Instance.transform);
+        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(defaultWallPrefab, Instance.transform);
         go.transform.position = position;
         go.transform.rotation = rot;
 
@@ -359,19 +367,19 @@ public class Grid3D : MonoBehaviour
 
         Gizmos.color = _gizmoColor;
 
-        if (toolbarSelected == 0 || toolbarSelected == 1 || toolbarSelected == 2 || toolbarSelected == 3)
+        if (true || toolbarSelected == 0 || toolbarSelected == 1 || toolbarSelected == 2 || toolbarSelected == 3)
         {
             foreach (float varX in _variationsFloats)
             {
                 foreach (float varZ in _variationsFloats)
                 {
-                    Vector3 pos = planePos.ToFixedVector3Int() + new Vector3(varX, 0, varZ);
+                    Vector3 pos = planePos.ToFixedVector3() + new Vector3(varX, 0, varZ);
 
                     Gizmos.DrawRay(pos, Vector3.back * 2);
                     Gizmos.DrawRay(pos, Vector3.forward * 2);
                     Gizmos.DrawRay(pos, Vector3.left * 2);
                     Gizmos.DrawRay(pos, Vector3.right * 2);
-                    if (_centerVariations.Any(x => x == varX) && _centerVariations.Any(x => x == varZ))
+                    if (_centerVariations.Any(x => x == varX) && _centerVariations.Any(z => z == varZ))
                     {
                         Gizmos.DrawRay(pos, Vector3.up);
                     }
@@ -428,9 +436,9 @@ public static class Grid3DExtensionMethods
         return final;
     }
 
-    public static Vector3Int ToFixedVector3Int(this Vector3 pos)
+    public static Vector3 ToFixedVector3(this Vector3 pos)
     {
-        return new Vector3Int(Mathf.CeilToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.CeilToInt(pos.z));
+        return new Vector3(Mathf.CeilToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.CeilToInt(pos.z));
     }
 }
 

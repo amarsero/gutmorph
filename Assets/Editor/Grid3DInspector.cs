@@ -15,7 +15,7 @@ public class Grid3DInspector : Editor
 
     private GUIStyle textGuiStyle = new GUIStyle();
 
-    private string[] toolbarStrings = { "Add Tile", "Remove Tile", "Add Wall", "Remove Wall" };
+    private string[] toolbarStrings = { "Add Floor", "Add Tile", "Add Wall", "Remove Floor", "Remove Tile", "Remove Wall" };
 
     void OnEnable()
     {
@@ -26,6 +26,7 @@ public class Grid3DInspector : Editor
         currentLevel = serializedObject.FindProperty("_currentLevel");
         plane = serializedObject.FindProperty("plane");
         toolbarSelected = serializedObject.FindProperty("toolbarSelected");
+        toolbarStrings = new string[]{ "Add Floor", "Add Tile", "Add Wall", "Remove Floor", "Remove Tile", "Remove Wall" };
 
         textGuiStyle.alignment = TextAnchor.MiddleCenter;
         textGuiStyle.fontSize = 14;
@@ -51,27 +52,23 @@ public class Grid3DInspector : Editor
         GUILayout.EndHorizontal();
 
         GUILayout.Space(10);
-
+        
         //Edit buttons
-        GUILayout.BeginHorizontal();
-        toolbarSelected.intValue = GUILayout.Toolbar(toolbarSelected.intValue, toolbarStrings);
-        GUILayout.EndHorizontal();
-
+        ((Grid3D)target).toolbarSelected = GUILayout.SelectionGrid(((Grid3D)target).toolbarSelected, toolbarStrings, 3);
 
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Refresh"))
         {
             ((Grid3D)target).RefreshTiles();
             ((Grid3D)target).RefreshWalls();
+            ((Grid3D)target).floorGrid.Refresh();
         }
         GUILayout.EndHorizontal();
 
+        GUILayout.Space(10);
 
-        SerializedProperty prop = serializedObject.GetIterator();
-        while (prop.NextVisible(true))
-        {
-            EditorGUILayout.PropertyField(prop);
-        }
+        DrawDefaultInspector();
+
         serializedObject.ApplyModifiedProperties();
     }
 

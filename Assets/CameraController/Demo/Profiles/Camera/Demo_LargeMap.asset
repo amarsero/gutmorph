@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Demo_LargeMap
   m_EditorClassIdentifier: 
   MoveMode: 0
-  Move_NearScreenEdge: 0
+  Move_NearScreenEdge: 1
   ScreenBorder: 50
   Can_Rotate: 1
   Use_SpeedBoost: 1

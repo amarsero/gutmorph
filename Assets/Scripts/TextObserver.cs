@@ -13,11 +13,9 @@ public class TextObserver : MonoBehaviour
     private RemoteObservableField Observable;
     public string Format;
 
-    private Text _text;
     // Start is called before the first frame update
     void Start()
     {
-        _text = GetComponent<Text>();
         if (Observable.Value == null)
         {
             throw new ArgumentNullException($"Observable not set at :{gameObject.GetGameObjectPath()}");
@@ -27,6 +25,6 @@ public class TextObserver : MonoBehaviour
 
     protected virtual void ChangeText(object obj)
     {
-        _text.text = string.IsNullOrWhiteSpace(Format) ? obj.ToString() : string.Format(Format, obj);
+        GetComponent<Text>().text = string.IsNullOrWhiteSpace(Format) ? obj.ToString() : string.Format(Format, obj);
     }
 }

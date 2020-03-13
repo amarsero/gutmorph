@@ -122,8 +122,6 @@ public class Grid3D : MonoBehaviour
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
         
-        //TODO: Maybe put each Wall/Tile/Entity/Floor as a class of Grid3D ?
-        
         //TODO: Make selection of tile
         
         if (insideWindow && editTiles && Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Grid3D>() != null)
@@ -159,7 +157,7 @@ public class Grid3D : MonoBehaviour
                     }
                 }
                 e.Use();
-                Selection.activeGameObject = gameObject;
+                Selection.activeGameObject = Instance.gameObject;
             }
         }
     }

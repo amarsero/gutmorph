@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 [Serializable]
 public class FloorGrid3D : Gridable3D<Floor3D>
@@ -27,24 +26,24 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         Debug.Log($"There are: {_floors.Count} floors");
     }
 
-    public override void Add(Vector3 position, GameObject prefabTile)
+    public override void Add(Vector3 position, GameObject prefab)
     {
         position = position.ToFixedVector3();
 
-        Floor3D prefabFloor = prefabTile.GetComponent<Floor3D>();
+        Floor3D prefabFloor = prefab.GetComponent<Floor3D>();
 
         if (prefabFloor == null)
         {
             throw new ArgumentException("gameObject is not a Floor3D");
         }
 
-        if (!FitsInPosition(position, prefabTile.GetComponent<Floor3D>()))
+        if (!FitsInPosition(position, prefab.GetComponent<Floor3D>()))
         {
             Debug.LogWarning("Already a floor in place");
             return;
         }
 
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabTile, Grid3D.Instance.transform);
+        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, Grid3D.Instance.transform);
         go.transform.position = position;
 
         Floor3D newFloor = go.GetComponent<Floor3D>();
@@ -70,7 +69,7 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         {
             _floors.Remove(tilePos);
         }
-        Object.DestroyImmediate(tile.gameObject);
+        UnityEngine.Object.DestroyImmediate(tile.gameObject);
     }
 
     public override bool FitsInPosition(Vector3 position, Floor3D component)

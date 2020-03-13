@@ -36,11 +36,11 @@ public class Grid3D : MonoBehaviour
     private GameObject defaultWallPrefab;
 
     public FloorGrid3D floorGrid = new FloorGrid3D();
+    public TileGrid3D tileGrid = new TileGrid3D();
+    public WallGrid3D wallGrid = new WallGrid3D();
 
     public static Grid3D Instance;
 
-    private static TileDictionary tiles = new TileDictionary();
-    private static WallDictionary walls = new WallDictionary();
     private static EntityDictionary entities = new EntityDictionary();
 
     private static Plane plane;
@@ -82,46 +82,14 @@ public class Grid3D : MonoBehaviour
         plane = new Plane(Vector3.up, -CurrentLevel);
         _gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
 
-        RefreshTiles();
-        RefreshWalls();
-        RefreshEntities();
+        tileGrid.Refresh();
+        wallGrid.Refresh();
         floorGrid.Refresh();
+        RefreshEntities();
     }
 
     public void IncreaseLevel() => CurrentLevel += 1;
     public void DecreaseLevel() => CurrentLevel -= 1;
-
-    public void RefreshWalls()
-    {
-        walls.Clear();
-        foreach (Wall3D wall in transform.GetComponentsInChildren<Wall3D>())
-        {
-            Vector3 pos = wall.transform.position.ToFixedHalfVector3();
-            if (walls.ContainsKey(pos))
-            {
-                Debug.Log($"2 walls on the same space at {pos}");
-                continue;
-            }
-            walls.Add(pos, wall);
-        }
-        Debug.Log($"There are: {walls.Count} walls");
-    }
-
-    public void RefreshTiles()
-    {
-        tiles.Clear();
-        foreach (Tile3D tile in transform.GetComponentsInChildren<Tile3D>())
-        {
-            Vector3 pos = tile.transform.position.ToFixedVector3();
-            if (tiles.ContainsKey(pos))
-            {
-                Debug.Log($"2 tiles on the same space at {pos}");
-                continue;
-            }
-            tiles.Add(pos, tile);
-        }
-        Debug.Log($"There are: {tiles.Count} tiles");
-    }
 
     public void RefreshEntities()
     {
@@ -153,9 +121,7 @@ public class Grid3D : MonoBehaviour
         }
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
-
-        //TODO: Add floor/roof
-
+        
         //TODO: Maybe put each Wall/Tile/Entity/Floor as a class of Grid3D ?
         
         //TODO: Make selection of tile
@@ -174,19 +140,19 @@ public class Grid3D : MonoBehaviour
                             floorGrid.Add(hitPoint, defaultFloorPrefab);
                             break;
                         case 1: //add tile
-                            AddTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3(), defaultTilePrefab);
+                            tileGrid.Add(hitPoint, defaultTilePrefab);
                             break;
                         case 2: //add wall
-                            AddWallAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedHalfVector3());
+                            wallGrid.Add(hitPoint, defaultWallPrefab);
                             break;
                         case 3: //remove floor
                             floorGrid.Remove(hitPoint);
                             break;
                         case 4: //remove tile
-                            RemoveTileAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedVector3());
+                            tileGrid.Remove(hitPoint);
                             break;
                         case 5: //remove wall
-                            RemoveWallAtPosition(new Vector3(hitPoint.x, hitPoint.y, hitPoint.z).ToFixedHalfVector3());
+                            wallGrid.Remove(hitPoint);
                             break;
                         default:
                             break;
@@ -197,66 +163,7 @@ public class Grid3D : MonoBehaviour
             }
         }
     }
-
-    private static void RemoveTileAtPosition(Vector3 position)
-    {
-        if (!tiles.ContainsKey(position))
-        {
-            Debug.Log("No tile to remove");
-            return;
-        }
-
-        Tile3D tile = tiles[position];
-        foreach (Vector3 tilePos in GetTileSizePositions(position, tile.Size))
-        {
-            tiles.Remove(tilePos);
-        }
-        DestroyImmediate(tile.gameObject);
-    }
-
-    private static void AddTileAtPosition(Vector3 position, GameObject prefabTile)
-    {
-        if (!TileFitsInPosition(position, prefabTile.GetComponent<Tile3D>()))
-        {
-            Debug.LogWarning("Already a tile in place");
-            return;
-        }
-
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefabTile, Instance.transform);
-        go.transform.position = position;
-
-        Tile3D newTile = go.GetComponent<Tile3D>();
-
-        foreach (Vector3 tilePos in GetTileSizePositions(position, newTile.Size))
-        {
-            tiles.Add(tilePos, newTile);
-        }
-    }
-
-    private static bool TileFitsInPosition(Vector3 position, Tile3D tile3D)
-    {
-        foreach (Vector3 tile in GetTileSizePositions(position, tile3D.Size))
-        {
-            if (tiles.ContainsKey(tile))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static bool WallFitsInPosition(Vector3 position, Wall3D wall3D)
-    {
-        foreach (Vector3 wall in GetWallSizePositions(position, wall3D.Size))
-        {
-            if (walls.ContainsKey(wall))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
+    
     public static IEnumerable<Vector3> GetTileSizePositions(Vector3 position, Vector3 size)
     {
         for (int x = 0; x < size.x; x++)
@@ -283,53 +190,6 @@ public class Grid3D : MonoBehaviour
                 }
             }
         }
-    }
-
-    private void AddWallAtPosition(Vector3 position)
-    {
-        if (!WallFitsInPosition(position, defaultWallPrefab.GetComponent<Wall3D>()))
-        {
-            Debug.Log("Already a wall in place");
-            return;
-        }
-
-        Quaternion rot = Quaternion.identity;
-        if (Math.Abs(position.x % 1f) > 0.2f)
-        {
-            rot = Quaternion.Euler(0, 90, 0);
-        }
-
-        GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(defaultWallPrefab, Instance.transform);
-        go.transform.position = position;
-        go.transform.rotation = rot;
-
-        Wall3D newWall = go.GetComponent<Wall3D>();
-
-        foreach (Vector3 wallPos in GetWallSizePositions(position, newWall.Size))
-        {
-            walls.Add(wallPos, newWall);
-        }
-
-        Debug.Log($"Wall at {position} rotation: {rot == Quaternion.identity}");
-    }
-
-    private void RemoveWallAtPosition(Vector3 position)
-    {
-        if (!walls.ContainsKey(position))
-        {
-            Debug.Log("No wall to remove");
-            return;
-        }
-
-
-        Wall3D wall = walls[position];
-
-        foreach (Vector3 wallPos in GetWallSizePositions(position, wall.Size))
-        {
-            walls.Remove(wallPos);
-        }
-
-        DestroyImmediate(wall.gameObject);
     }
 
     //Returns true and the position of the mouse in the plane, else false
@@ -389,9 +249,6 @@ public class Grid3D : MonoBehaviour
     }
 
 }
-
-//TODO: Put walls, entities and tiles each in it's own gameobject child of Grid
-
 
 public static class Grid3DExtensionMethods
 {

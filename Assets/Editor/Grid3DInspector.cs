@@ -59,8 +59,8 @@ public class Grid3DInspector : Editor
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Refresh"))
         {
-            ((Grid3D)target).RefreshTiles();
-            ((Grid3D)target).RefreshWalls();
+            ((Grid3D)target).tileGrid.Refresh();
+            ((Grid3D)target).wallGrid.Refresh();
             ((Grid3D)target).floorGrid.Refresh();
         }
         GUILayout.EndHorizontal();

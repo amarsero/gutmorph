@@ -2641,7 +2641,7 @@ MonoBehaviour:
   defaultWallPrefab: {fileID: 6448538383374864773, guid: 4d8700cc1824da942914a891ebf6daa6,
     type: 3}
   editTiles: 1
-  toolbarSelected: 4
+  toolbarSelected: -1
 --- !u!4 &642957656
 Transform:
   m_ObjectHideFlags: 0
@@ -4173,6 +4173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4362c3728a18a345ae1a715dd0bdd50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Size: {x: 0, y: 0, z: 0}
 --- !u!1001 &849698484
 PrefabInstance:
   m_ObjectHideFlags: 0

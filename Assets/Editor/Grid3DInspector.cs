@@ -13,6 +13,8 @@ public class Grid3DInspector : Editor
     private SerializedProperty toolbarSelected;
     private SerializedProperty plane;
 
+    private Grid3D grid;
+
     private GUIStyle textGuiStyle = new GUIStyle();
 
     private string[] toolbarStrings = { "Add Floor", "Add Tile", "Add Wall", "Remove Floor", "Remove Tile", "Remove Wall" };
@@ -35,7 +37,7 @@ public class Grid3DInspector : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-
+        grid = (Grid3D) target;
         //ShowGridSizeButtons();
 
         //Level
@@ -52,16 +54,14 @@ public class Grid3DInspector : Editor
         GUILayout.EndHorizontal();
 
         GUILayout.Space(10);
-        
+
         //Edit buttons
-        ((Grid3D)target).toolbarSelected = GUILayout.SelectionGrid(((Grid3D)target).toolbarSelected, toolbarStrings, 3);
+        grid.toolbarSelected = GUILayout.SelectionGrid(grid.editTiles ? grid.toolbarSelected : -1, toolbarStrings, 3);
 
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Refresh"))
         {
-            ((Grid3D)target).tileGrid.Refresh();
-            ((Grid3D)target).wallGrid.Refresh();
-            ((Grid3D)target).floorGrid.Refresh();
+            grid.Refresh();
         }
         GUILayout.EndHorizontal();
 

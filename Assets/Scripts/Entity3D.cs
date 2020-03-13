@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Entity3D : MonoBehaviour
 {
+    public Vector3Int Size;
     // Start is called before the first frame update
     void Start()
     {

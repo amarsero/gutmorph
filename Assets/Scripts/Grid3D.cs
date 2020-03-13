@@ -38,10 +38,9 @@ public class Grid3D : MonoBehaviour
     public FloorGrid3D floorGrid = new FloorGrid3D();
     public TileGrid3D tileGrid = new TileGrid3D();
     public WallGrid3D wallGrid = new WallGrid3D();
+    public EntityGrid3D entityGrid = new EntityGrid3D();
 
     public static Grid3D Instance;
-
-    private static EntityDictionary entities = new EntityDictionary();
 
     private static Plane plane;
 
@@ -60,8 +59,7 @@ public class Grid3D : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    private bool editTiles;
+    public bool editTiles;
 
     private bool insideWindow;
 
@@ -82,30 +80,19 @@ public class Grid3D : MonoBehaviour
         plane = new Plane(Vector3.up, -CurrentLevel);
         _gizmoColor = new Color(1, 0.92f, 0.15f, 0.2f);
 
+        Refresh();
+    }
+
+    public void Refresh()
+    {
+        entityGrid.Refresh();
+        floorGrid.Refresh();
         tileGrid.Refresh();
         wallGrid.Refresh();
-        floorGrid.Refresh();
-        RefreshEntities();
     }
 
     public void IncreaseLevel() => CurrentLevel += 1;
     public void DecreaseLevel() => CurrentLevel -= 1;
-
-    public void RefreshEntities()
-    {
-        entities.Clear();
-        foreach (Entity3D entity in transform.GetComponentsInChildren<Entity3D>())
-        {
-            Vector3 pos = entity.transform.position.ToFixedVector3();
-            if (entities.ContainsKey(pos))
-            {
-                Debug.Log($"2 entities on the same space at {pos}");
-                continue;
-            }
-            entities.Add(pos, entity);
-        }
-        Debug.Log($"There are: {entities.Count} entities");
-    }
 
     void OnScene(SceneView scene)
     {

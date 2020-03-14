@@ -6147,7 +6147,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76c5a3bc562996347ae8d121a161b740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _selectionVisualPrefab: {fileID: 5061879255400407903, guid: 34372c409ef0fd64eb956764604dbe20,
+  deletedis: {fileID: 0}
+  SelectedGameObject: {fileID: 0}
+  _selectionCursorPrefab: {fileID: 5061879255400407903, guid: 34372c409ef0fd64eb956764604dbe20,
     type: 3}
 --- !u!4 &1297139697
 Transform:

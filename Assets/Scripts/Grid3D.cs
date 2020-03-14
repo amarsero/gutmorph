@@ -42,7 +42,7 @@ public class Grid3D : MonoBehaviour
 
     public static Grid3D Instance;
 
-    private static Plane plane;
+    public static Plane plane;
 
     [SerializeField]
     private static int _currentLevel;

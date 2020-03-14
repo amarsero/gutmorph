@@ -21,8 +21,9 @@ public class EntityGrid3D : Gridable3D<Entity3D>
         }
         Debug.Log($"There are: {entitys.Count} entitys");
     }
-
-    public override void Add(Vector3 position, GameObject prefab)
+    
+    //returns new object if successful, else null
+    public override Entity3D Add(Vector3 position, GameObject prefab)
     {
         position = position.ToFixedVector3();
 
@@ -36,7 +37,7 @@ public class EntityGrid3D : Gridable3D<Entity3D>
         if (!FitsInPosition(position, prefab.GetComponent<Entity3D>()))
         {
             Debug.LogWarning("Already a entity in place");
-            return;
+            return null;
         }
 
         GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, Grid3D.Instance.transform);
@@ -48,6 +49,8 @@ public class EntityGrid3D : Gridable3D<Entity3D>
         {
             entitys.Add(entityPos, newEntity);
         }
+
+        return newEntity;
     }
 
     public override void Remove(Vector3 position)

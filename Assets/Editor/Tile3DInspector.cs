@@ -23,16 +23,14 @@ public class Tile3DInspector : Editor
     {
         serializedObject.Update();
 
-        SerializedProperty prop = serializedObject.GetIterator();
-        while (prop.NextVisible(true))
-        {
-            EditorGUILayout.PropertyField(prop);
-        }
+        DrawDefaultInspector();
 
         GUILayout.BeginHorizontal(GUILayout.ExpandHeight(true));
         foreach (GameObject prefab in prefabs)
         {
-            if (GUILayout.Button(AssetPreview.GetAssetPreview(prefab), icons, GUILayout.Width(96), GUILayout.Height(96)))
+            Texture2D preview = AssetPreview.GetAssetPreview(prefab);
+            if (preview == null) continue; //This removes invisible tiles (BaseTile)
+            if (GUILayout.Button(preview, icons, GUILayout.Width(96), GUILayout.Height(96)))
             {
                 PrefabSelected(prefab);
                 GUILayout.EndHorizontal();
@@ -52,7 +50,11 @@ public class Tile3DInspector : Editor
         {
             if (selected.GetComponent<Tile3D>() == null) continue;
 
-            GameObject newObject = (GameObject) PrefabUtility.InstantiatePrefab(prefab);
+            int siblingIndex = selected.transform.GetSiblingIndex();
+            Vector3 pos = selected.transform.position;
+            Grid3D.Instance.tileGrid.Remove(selected.transform.position);
+
+            GameObject newObject = Grid3D.Instance.tileGrid.Add(pos, prefab).gameObject;
 
             // -- if for some reason Unity couldn't perform your request, print an error
             if (newObject == null)
@@ -61,18 +63,10 @@ public class Tile3DInspector : Editor
                 return;
             }
 
-            // -- set up "undo" features for the new prefab, like setting up the old transform
-            
-            Undo.RegisterCreatedObjectUndo(newObject, "Replace With Prefabs");
-            newObject.transform.parent = selected.transform.parent;
-            newObject.transform.localPosition = selected.transform.localPosition;
-            newObject.transform.localRotation = selected.transform.localRotation;
-            newObject.transform.localScale = selected.transform.localScale;
-            newObject.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
+            newObject.transform.SetSiblingIndex(siblingIndex);
             newGameObjects.Add(newObject);
 
             // -- now delete the old prefab
-            Undo.DestroyObjectImmediate(selected);
         }
         Selection.objects = newGameObjects.ToArray();
     }

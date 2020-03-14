@@ -37,7 +37,7 @@ public class Grid3DInspector : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        grid = (Grid3D) target;
+        grid = Grid3D.Instance;
         //ShowGridSizeButtons();
 
         //Level

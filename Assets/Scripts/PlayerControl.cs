@@ -69,7 +69,6 @@ public class PlayerControl : MonoBehaviour
         return selectable?.GameObject;
     }
     
-    //TODO: Select entities
     //TODO: Change material of selected object
     //TODO: Change size of selection cursor according selected object size (And make it smaller on height)
 

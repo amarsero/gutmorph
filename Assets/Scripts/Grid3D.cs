@@ -109,8 +109,6 @@ public class Grid3D : MonoBehaviour
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
         
-        //TODO: Make selection of tile
-        
         if (insideWindow && editTiles && Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Grid3D>() != null)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));

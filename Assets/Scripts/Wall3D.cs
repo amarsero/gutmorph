@@ -5,7 +5,9 @@ using UnityEngine;
 [SelectionBase]
 public class Wall3D : MonoBehaviour
 {
-    public Vector3Int Size;
+    [SerializeField]
+    private Vector3Int _size;
+    public Vector3Int Size => _size;
 
     // Start is called before the first frame update
     void Start()

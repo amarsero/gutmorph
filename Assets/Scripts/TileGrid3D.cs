@@ -22,7 +22,7 @@ public class TileGrid3D : Gridable3D<Tile3D>
         Debug.Log($"There are: {tiles.Count} tiles");
     }
 
-    public override void Add(Vector3 position, GameObject prefab)
+    public override Tile3D Add(Vector3 position, GameObject prefab)
     {
         position = position.ToFixedVector3();
 
@@ -36,7 +36,7 @@ public class TileGrid3D : Gridable3D<Tile3D>
         if (!FitsInPosition(position, prefab.GetComponent<Tile3D>()))
         {
             Debug.LogWarning("Already a tile in place");
-            return;
+            return null;
         }
 
         GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, Grid3D.Instance.transform);
@@ -48,6 +48,8 @@ public class TileGrid3D : Gridable3D<Tile3D>
         {
             tiles.Add(tilePos, newTile);
         }
+
+        return newTile;
     }
 
     public override void Remove(Vector3 position)

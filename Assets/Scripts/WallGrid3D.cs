@@ -23,7 +23,7 @@ public class WallGrid3D : Gridable3D<Wall3D>
         Debug.Log($"There are: {walls.Count} walls");
     }
 
-    public override void Add(Vector3 position, GameObject prefab)
+    public override Wall3D Add(Vector3 position, GameObject prefab)
     {
         position = position.ToFixedHalfVector3();
 
@@ -37,7 +37,7 @@ public class WallGrid3D : Gridable3D<Wall3D>
         if (!FitsInPosition(position, prefab.GetComponent<Wall3D>()))
         {
             Debug.Log("Already a wall in place");
-            return;
+            return null;
         }
 
         Quaternion rot = Quaternion.identity;
@@ -57,7 +57,7 @@ public class WallGrid3D : Gridable3D<Wall3D>
             walls.Add(wallPos, newWall);
         }
 
-        Debug.Log($"Wall at {position} rotation: {rot == Quaternion.identity}");
+        return newWall;
     }
 
     public override void Remove(Vector3 position)

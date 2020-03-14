@@ -26,7 +26,7 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         Debug.Log($"There are: {_floors.Count} floors");
     }
 
-    public override void Add(Vector3 position, GameObject prefab)
+    public override Floor3D Add(Vector3 position, GameObject prefab)
     {
         position = position.ToFixedVector3();
 
@@ -40,7 +40,7 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         if (!FitsInPosition(position, prefab.GetComponent<Floor3D>()))
         {
             Debug.LogWarning("Already a floor in place");
-            return;
+            return null;
         }
 
         GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, Grid3D.Instance.transform);
@@ -52,6 +52,8 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         {
             _floors.Add(floorPos, newFloor);
         }
+
+        return newFloor;
     }
 
     public override void Remove(Vector3 position)

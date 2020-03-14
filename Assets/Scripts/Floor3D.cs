@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Floor3D : MonoBehaviour, IGridSelectable
 {
-    public Vector3Int Size;
+    [SerializeField] 
+    private Vector3Int _size;
+    public Vector3Int Size => _size;
     public GameObject GameObject => gameObject;
     // Start is called before the first frame update
     void Start()

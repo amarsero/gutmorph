@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Floor3D : MonoBehaviour
+public class Floor3D : MonoBehaviour, IGridSelectable
 {
     public Vector3Int Size;
+    public GameObject GameObject => gameObject;
     // Start is called before the first frame update
     void Start()
     {

@@ -3,21 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [SelectionBase]
-public class Wall3D : MonoBehaviour, ISizeable
+public class Wall3D : Gridable3D
 {
-    [SerializeField]
-    private Vector3Int _size;
-    public Vector3Int Size => _size;
-
-    // Start is called before the first frame update
-    void Start()
+    public override Vector3 FixToPosition(Vector3 position)
     {
-        
+        return position.ToFixedHalfVector3();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override IEnumerable<Vector3> GetSizePositions(Vector3 position, Vector3Int size)
     {
-        
+        return Grid3D.GetWallSizePositions(position, size);
     }
 }

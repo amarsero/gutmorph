@@ -35,10 +35,10 @@ public class Grid3D : MonoBehaviour
     [SerializeField]
     private GameObject defaultWallPrefab;
 
-    public FloorGrid3D floorGrid = new FloorGrid3D();
-    public TileGrid3D tileGrid = new TileGrid3D();
-    public WallGrid3D wallGrid = new WallGrid3D();
-    public EntityGrid3D entityGrid = new EntityGrid3D();
+    public FloorGrid3D FloorGrid = new FloorGrid3D();
+    public TileGrid3D TileGrid = new TileGrid3D();
+    public WallGrid3D WallGrid = new WallGrid3D();
+    public EntityGrid3D EntityGrid = new EntityGrid3D();
 
     public static Grid3D Instance;
 
@@ -85,10 +85,10 @@ public class Grid3D : MonoBehaviour
 
     public void Refresh()
     {
-        entityGrid.Refresh();
-        floorGrid.Refresh();
-        tileGrid.Refresh();
-        wallGrid.Refresh();
+        EntityGrid.Refresh();
+        FloorGrid.Refresh();
+        TileGrid.Refresh();
+        WallGrid.Refresh();
     }
 
     public void IncreaseLevel() => CurrentLevel += 1;
@@ -120,22 +120,22 @@ public class Grid3D : MonoBehaviour
                     switch (toolbarSelected)
                     {
                         case 0: //add floor
-                            floorGrid.Add(hitPoint, defaultFloorPrefab);
+                            FloorGrid.Add(hitPoint, defaultFloorPrefab);
                             break;
                         case 1: //add tile
-                            tileGrid.Add(hitPoint, defaultTilePrefab);
+                            TileGrid.Add(hitPoint, defaultTilePrefab);
                             break;
                         case 2: //add wall
-                            wallGrid.Add(hitPoint, defaultWallPrefab);
+                            WallGrid.Add(hitPoint, defaultWallPrefab);
                             break;
                         case 3: //remove floor
-                            floorGrid.Remove(hitPoint);
+                            FloorGrid.Remove(hitPoint);
                             break;
                         case 4: //remove tile
-                            tileGrid.Remove(hitPoint);
+                            TileGrid.Remove(hitPoint);
                             break;
                         case 5: //remove wall
-                            wallGrid.Remove(hitPoint);
+                            WallGrid.Remove(hitPoint);
                             break;
                         default:
                             break;
@@ -151,9 +151,9 @@ public class Grid3D : MonoBehaviour
     {
         for (int x = 0; x < size.x; x++)
         {
-            for (int y = 0; x < size.y; x++)
+            for (int y = 0; y < size.y; y++)
             {
-                for (int z = 0; x < size.z; x++)
+                for (int z = 0; z < size.z; z++)
                 {
                     yield return new Vector3(x, y, z) + position;
                 }
@@ -165,9 +165,9 @@ public class Grid3D : MonoBehaviour
     {
         for (int x = 0; x < size.x; x++)
         {
-            for (int y = 0; x < size.y; x++)
+            for (int y = 0; y < size.y; y++)
             {
-                for (int z = 0; x < size.z; x++)
+                for (int z = 0; z < size.z; z++)
                 {
                     yield return new Vector3(x, y, z) + position;
                 }

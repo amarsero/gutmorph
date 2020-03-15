@@ -4,7 +4,7 @@ Shader "Outlined/UltimateOutline"
 {
 	Properties
 	{
-	
+
 		_SecondOutlineColor("Outline color", Color) = (0,0,1,1)
 		_SecondOutlineWidth("Outlines width", Range(0.0, 2.0)) = 0.025
 
@@ -21,7 +21,7 @@ Shader "Outlined/UltimateOutline"
 			float4 vertex : POSITION;
 			float4 normal : NORMAL;
 		};
-		
+
 		uniform float4 _SecondOutlineColor;
 		uniform float _SecondOutlineWidth;
 
@@ -33,7 +33,7 @@ Shader "Outlined/UltimateOutline"
 
 			SubShader{
 			//First outline
-			
+
 
 
 //Second outline
@@ -78,24 +78,23 @@ Pass{
 	ENDCG
 }
 
-//
-////Surface shader
-//Tags{ "Queue" = "Transparent" }
-//
-//CGPROGRAM
-//#pragma surface surf Lambert noshadow
-//
-//struct Input {
-//	float2 uv_MainTex;
-//	float4 color : COLOR;
-//};
-//
-//void surf(Input IN, inout SurfaceOutput  o) {
-//	//fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
-//	//o.Albedo = c.rgb;
-//	//o.Alpha = c.a;
-//}
-//ENDCG
+
+//Surface shader
+Tags{ "Queue" = "Transparent" }
+
+CGPROGRAM
+#pragma surface surf Lambert noshadow
+
+struct Input {
+	float2 uv_MainTex;
+	float4 color : COLOR;
+};
+
+void surf(Input IN, inout SurfaceOutput  o) {
+	fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+	o.Albedo = c.rgb;
+}
+ENDCG
 		}
 			Fallback "Diffuse"
 

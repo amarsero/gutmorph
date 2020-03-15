@@ -52,9 +52,9 @@ public class Tile3DInspector : Editor
 
             int siblingIndex = selected.transform.GetSiblingIndex();
             Vector3 pos = selected.transform.position;
-            Grid3D.Instance.tileGrid.Remove(selected.transform.position);
+            Grid3D.Instance.TileGrid.Remove(selected.transform.position);
 
-            GameObject newObject = Grid3D.Instance.tileGrid.Add(pos, prefab).gameObject;
+            GameObject newObject = Grid3D.Instance.TileGrid.Add(pos, prefab).gameObject;
 
             // -- if for some reason Unity couldn't perform your request, print an error
             if (newObject == null)

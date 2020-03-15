@@ -9,15 +9,17 @@ public class PlayerControl : MonoBehaviour
     public GameObject SelectedGameObject;
 
     private GameObject _selectionCursorGO;
-    public GameObject _selectionCursorPrefab;
+    public GameObject SelectionCursorPrefab;
+    public Material GlowinMaterial;
     private Vector3 _offset = new Vector3(0, 0.01f);
     private int layerMask;
     private Soldier _selectedSoldier;
+    private List<Material> _selectedPreviousMaterials;
 
     void Start()
     {
         layerMask = LayerMask.GetMask("Selectable");
-        _selectionCursorGO = (GameObject)PrefabUtility.InstantiatePrefab(_selectionCursorPrefab, transform);
+        _selectionCursorGO = (GameObject)PrefabUtility.InstantiatePrefab(SelectionCursorPrefab, transform);
     }
     void Update()
     {
@@ -94,6 +96,16 @@ public class PlayerControl : MonoBehaviour
     private void ClearSelection()
     {
         SelectedGameObject = null;
+
+        if (_selectedPreviousMaterials != null && _selectedSoldier != null)
+        {
+            Renderer[] renderers = _selectedSoldier.GetComponentsInChildren<Renderer>();
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].material = _selectedPreviousMaterials[i];
+            }
+        }
+
         _selectedSoldier = null;
     }
 
@@ -104,24 +116,51 @@ public class PlayerControl : MonoBehaviour
     /// <returns>True if successful</returns>
     private bool SelectObject(GameObject hitObject)
     {
-        Soldier soldier = hitObject.GetComponent<Soldier>();
-        if (soldier != null)
+        bool soldierFound = FindSoldier();
+
+        if (!soldierFound) return soldierFound;
+        
+        Renderer[] renderers = _selectedSoldier.GetComponentsInChildren<Renderer>();
+        _selectedPreviousMaterials = new List<Material>(renderers.Length);
+
+        foreach (Renderer renderer in renderers)
         {
-            _selectedSoldier = soldier;
-            return true;
+            _selectedPreviousMaterials.Add(renderer.material);
+            renderer.material = GlowinMaterial;
         }
 
-        Floor3D floor = hitObject.GetComponent<Floor3D>();
-        if (floor != null)
+        _selectedSoldier.GetComponentsInChildren<Renderer>();
+
+        return soldierFound;
+
+        bool FindSoldier()
         {
-            Entity3D entity3D = Grid3D.Instance.entityGrid[floor.transform.position]?.GetComponent<Soldier>();
-            if (entity3D != null)
+            Soldier soldier = hitObject.GetComponent<Soldier>();
+
+            if (soldier != null)
             {
-                _selectedSoldier = (Soldier)entity3D;
+                SetSoldier();
                 return true;
             }
+
+            Floor3D floor = hitObject.GetComponent<Floor3D>();
+            if (floor != null)
+            {
+                soldier = Grid3D.Instance.EntityGrid[floor.transform.position]?.GetComponent<Soldier>();
+                if (soldier != null)
+                {
+                    SetSoldier();
+                    return true;
+                }
+            }
+            return false;
+
+            void SetSoldier()
+            {
+                ClearSelection();
+                _selectedSoldier = soldier;
+            }
         }
-        return false;
     }
 
     private void ScaleCursor()

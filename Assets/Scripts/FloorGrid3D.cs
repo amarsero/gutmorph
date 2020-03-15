@@ -5,6 +5,6 @@ using UnityEditor;
 using UnityEngine;
 
 [Serializable]
-public class FloorGrid3D : Gridable3D<Floor3D>
+public class FloorGrid3D : GridableGrid3D<Floor3D>
 {
 }

@@ -84,7 +84,6 @@ public class PlayerControl : MonoBehaviour
     //TODO: Make movement and rotation adjustments to TileGrid and the rest (So it can move in tile fashion)
     //TODO: Do a ghost of tiles before placing
 
-    //TODO: Player movememt
 
     private void MoveSelectionVisual(Vector3 planePosition)
     {

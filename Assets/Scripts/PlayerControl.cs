@@ -12,6 +12,7 @@ public class PlayerControl : MonoBehaviour
     public GameObject _selectionCursorPrefab;
     private Vector3 _offset = new Vector3(0, 0.01f);
     private int layerMask;
+    private Soldier _selectedSoldier;
 
     void Start()
     {
@@ -47,8 +48,17 @@ public class PlayerControl : MonoBehaviour
         {
             if (hitObject != null)
             {
-                SelectObject(hitObject);
-                MoveSelectionVisual(hitObject.transform.position);
+                if (SelectObject(hitObject))
+                {
+                    MoveSelectionVisual(hitObject.transform.position);
+                }
+                else
+                {
+                    if (_selectedSoldier != null)
+                    {
+                        _selectedSoldier.Move(hitInfo.transform.position);
+                    }
+                }
             }
             else
             {
@@ -69,8 +79,12 @@ public class PlayerControl : MonoBehaviour
         return selectable?.GameObject;
     }
     
-    //TODO: Change material of selected object
+    //TODO: Change material of selected object so it glows
     //TODO: Change size of selection cursor according selected object size (And make it smaller on height)
+    //TODO: Make movement and rotation adjustments to TileGrid and the rest (So it can move in tile fashion)
+    //TODO: Do a ghost of tiles before placing
+
+    //TODO: Player movememt
 
     private void MoveSelectionVisual(Vector3 planePosition)
     {
@@ -81,11 +95,34 @@ public class PlayerControl : MonoBehaviour
     private void ClearSelection()
     {
         SelectedGameObject = null;
+        _selectedSoldier = null;
     }
 
-    private void SelectObject(GameObject hitObject)
+    /// <summary>
+    /// Tries to select an object.
+    /// </summary>
+    /// <param name="hitObject">GameObject to try to select</param>
+    /// <returns>True if successful</returns>
+    private bool SelectObject(GameObject hitObject)
     {
-        SelectedGameObject = hitObject;
+        Soldier soldier = hitObject.GetComponent<Soldier>();
+        if (soldier != null)
+        {
+            _selectedSoldier = soldier;
+            return true;
+        }
+
+        Floor3D floor = hitObject.GetComponent<Floor3D>();
+        if (floor != null)
+        {
+            Entity3D entity3D = Grid3D.Instance.entityGrid[floor.transform.position]?.GetComponent<Soldier>();
+            if (entity3D != null)
+            {
+                _selectedSoldier = (Soldier)entity3D;
+                return true;
+            }
+        }
+        return false;
     }
 
     private void ScaleCursor()

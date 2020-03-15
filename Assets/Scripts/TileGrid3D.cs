@@ -4,22 +4,22 @@ using UnityEngine;
 
 public class TileGrid3D : Gridable3D<Tile3D>
 {
-    TileDictionary tiles = new TileDictionary();
+    TileDictionary _tiles = new TileDictionary();
 
     public override void Refresh()
     {
-        tiles.Clear();
+        _tiles.Clear();
         foreach (Tile3D tile in Grid3D.Instance.transform.GetComponentsInChildren<Tile3D>())
         {
             Vector3 pos = tile.transform.position.ToFixedVector3();
-            if (tiles.ContainsKey(pos))
+            if (_tiles.ContainsKey(pos))
             {
                 Debug.Log($"2 tiles on the same space at {pos}");
                 continue;
             }
-            tiles.Add(pos, tile);
+            _tiles.Add(pos, tile);
         }
-        Debug.Log($"There are: {tiles.Count} tiles");
+        Debug.Log($"There are: {_tiles.Count} tiles");
     }
 
     public override Tile3D Add(Vector3 position, GameObject prefab)
@@ -46,7 +46,7 @@ public class TileGrid3D : Gridable3D<Tile3D>
 
         foreach (Vector3 tilePos in Grid3D.GetTileSizePositions(position, newTile.Size))
         {
-            tiles.Add(tilePos, newTile);
+            _tiles.Add(tilePos, newTile);
         }
 
         return newTile;
@@ -56,16 +56,16 @@ public class TileGrid3D : Gridable3D<Tile3D>
     {
         position = position.ToFixedVector3();
 
-        if (!tiles.ContainsKey(position))
+        if (!_tiles.ContainsKey(position))
         {
             Debug.Log("No tile to remove");
             return;
         }
 
-        Tile3D tile = tiles[position];
+        Tile3D tile = _tiles[position];
         foreach (Vector3 tilePos in Grid3D.GetTileSizePositions(position, tile.Size))
         {
-            tiles.Remove(tilePos);
+            _tiles.Remove(tilePos);
         }
         UnityEngine.Object.DestroyImmediate(tile.gameObject);
     }
@@ -74,11 +74,21 @@ public class TileGrid3D : Gridable3D<Tile3D>
     {
         foreach (Vector3 tile in Grid3D.GetTileSizePositions(position, component.Size))
         {
-            if (tiles.ContainsKey(tile))
+            if (_tiles.ContainsKey(tile))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    public override Tile3D this[Vector3 index]
+    {
+        get
+        {
+            _tiles.TryGetValue(index, out Tile3D value);
+            return value;
+        }
+        set => _tiles[index] = value;
     }
 }

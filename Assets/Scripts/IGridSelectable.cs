@@ -1,8 +1,7 @@
 ﻿
 using UnityEngine;
 
-public interface IGridSelectable
+public interface IGridSelectable : ISizeable
 {
     GameObject GameObject { get; }
-    Vector3Int Size { get; }
 }

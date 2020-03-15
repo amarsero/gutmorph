@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [SelectionBase]
-public class Wall3D : MonoBehaviour
+public class Wall3D : MonoBehaviour, ISizeable
 {
     [SerializeField]
     private Vector3Int _size;

@@ -85,4 +85,14 @@ public class FloorGrid3D : Gridable3D<Floor3D>
         }
         return true;
     }
+    
+    public override Floor3D this[Vector3 index]
+    {
+        get
+        {
+            _floors.TryGetValue(index, out Floor3D value);
+            return value;
+        }
+        set => _floors[index] = value;
+    }
 }

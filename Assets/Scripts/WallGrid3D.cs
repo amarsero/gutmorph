@@ -6,21 +6,21 @@ using UnityEngine;
 
 public class WallGrid3D : Gridable3D<Wall3D>
 {
-    private static WallDictionary walls = new WallDictionary();
+    private static WallDictionary _walls = new WallDictionary();
     public override void Refresh()
     {
-        walls.Clear();
+        _walls.Clear();
         foreach (Wall3D wall in Grid3D.Instance.transform.GetComponentsInChildren<Wall3D>())
         {
             Vector3 pos = wall.transform.position.ToFixedHalfVector3();
-            if (walls.ContainsKey(pos))
+            if (_walls.ContainsKey(pos))
             {
                 Debug.Log($"2 walls on the same space at {pos}");
                 continue;
             }
-            walls.Add(pos, wall);
+            _walls.Add(pos, wall);
         }
-        Debug.Log($"There are: {walls.Count} walls");
+        Debug.Log($"There are: {_walls.Count} walls");
     }
 
     public override Wall3D Add(Vector3 position, GameObject prefab)
@@ -54,7 +54,7 @@ public class WallGrid3D : Gridable3D<Wall3D>
 
         foreach (Vector3 wallPos in Grid3D.GetWallSizePositions(position, newWall.Size))
         {
-            walls.Add(wallPos, newWall);
+            _walls.Add(wallPos, newWall);
         }
 
         return newWall;
@@ -64,17 +64,17 @@ public class WallGrid3D : Gridable3D<Wall3D>
     {
         position = position.ToFixedHalfVector3();
 
-        if (!walls.ContainsKey(position))
+        if (!_walls.ContainsKey(position))
         {
             Debug.Log("No wall to remove");
             return;
         }
 
-        Wall3D wall = walls[position];
+        Wall3D wall = _walls[position];
 
         foreach (Vector3 wallPos in Grid3D.GetWallSizePositions(position, wall.Size))
         {
-            walls.Remove(wallPos);
+            _walls.Remove(wallPos);
         }
 
         UnityEngine.Object.DestroyImmediate(wall.gameObject);
@@ -84,11 +84,22 @@ public class WallGrid3D : Gridable3D<Wall3D>
     {
         foreach (Vector3 wall in Grid3D.GetWallSizePositions(position, component.Size))
         {
-            if (walls.ContainsKey(wall))
+            if (_walls.ContainsKey(wall))
             {
                 return false;
             }
         }
         return true;
     }
+
+    public override Wall3D this[Vector3 index]
+    {
+        get
+        {
+            _walls.TryGetValue(index, out Wall3D value);
+            return value;
+        }
+        set => _walls[index] = value;
+    }
+
 }

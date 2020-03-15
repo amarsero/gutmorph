@@ -4,22 +4,22 @@ using UnityEngine;
 
 public class EntityGrid3D : Gridable3D<Entity3D>
 {
-    EntityDictionary entitys = new EntityDictionary();
+    EntityDictionary _entities = new EntityDictionary();
 
     public override void Refresh()
     {
-        entitys.Clear();
+        _entities.Clear();
         foreach (Entity3D entity in Grid3D.Instance.transform.GetComponentsInChildren<Entity3D>())
         {
             Vector3 pos = entity.transform.position.ToFixedVector3();
-            if (entitys.ContainsKey(pos))
+            if (_entities.ContainsKey(pos))
             {
                 Debug.Log($"2 entitys on the same space at {pos}");
                 continue;
             }
-            entitys.Add(pos, entity);
+            _entities.Add(pos, entity);
         }
-        Debug.Log($"There are: {entitys.Count} entitys");
+        Debug.Log($"There are: {_entities.Count} entities");
     }
     
     //returns new object if successful, else null
@@ -47,7 +47,7 @@ public class EntityGrid3D : Gridable3D<Entity3D>
 
         foreach (Vector3 entityPos in Grid3D.GetTileSizePositions(position, newEntity.Size))
         {
-            entitys.Add(entityPos, newEntity);
+            _entities.Add(entityPos, newEntity);
         }
 
         return newEntity;
@@ -57,16 +57,16 @@ public class EntityGrid3D : Gridable3D<Entity3D>
     {
         position = position.ToFixedVector3();
 
-        if (!entitys.ContainsKey(position))
+        if (!_entities.ContainsKey(position))
         {
             Debug.Log("No entity to remove");
             return;
         }
 
-        Entity3D entity = entitys[position];
+        Entity3D entity = _entities[position];
         foreach (Vector3 entityPos in Grid3D.GetTileSizePositions(position, entity.Size))
         {
-            entitys.Remove(entityPos);
+            _entities.Remove(entityPos);
         }
         UnityEngine.Object.DestroyImmediate(entity.gameObject);
     }
@@ -75,11 +75,21 @@ public class EntityGrid3D : Gridable3D<Entity3D>
     {
         foreach (Vector3 entity in Grid3D.GetTileSizePositions(position, component.Size))
         {
-            if (entitys.ContainsKey(entity))
+            if (_entities.ContainsKey(entity))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    public override Entity3D this[Vector3 index]
+    {
+        get
+        {
+            _entities.TryGetValue(index, out Entity3D value);
+            return value;
+        }
+        set => _entities[index] = value;
     }
 }

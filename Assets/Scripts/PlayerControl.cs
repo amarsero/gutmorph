@@ -81,7 +81,7 @@ public class PlayerControl : MonoBehaviour
         return selectable?.GameObject;
     }
     
-    //TODO: Change material of selected object so it glows
+
     //TODO: Change size of selection cursor according selected object size (And make it smaller on height)
     //TODO: Make movement and rotation adjustments to TileGrid and the rest (So it can move in tile fashion)
     //TODO: Do a ghost of tiles before placing

@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(Tile3D)), CanEditMultipleObjects]
-public class Tile3DInspector : Editor
+public class Tile3DInspector : Gridable3DInspector
 {
     GUIStyle icons = new GUIStyle();
     HashSet<GameObject> prefabs = new HashSet<GameObject>();
-    void OnEnable()
+
+    new void OnEnable()
     {
+        base.OnEnable();
+
         foreach (GameObject prefab in Resources.LoadAll<GameObject>("Tiles/"))
         {
             if (PrefabUtility.GetPrefabAssetType(prefab) != PrefabAssetType.NotAPrefab)
@@ -22,6 +26,8 @@ public class Tile3DInspector : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+
+        base.OnInspectorGUI();
 
         DrawDefaultInspector();
 

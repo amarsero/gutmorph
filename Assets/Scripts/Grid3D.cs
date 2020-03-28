@@ -14,17 +14,6 @@ using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine.Tilemaps;
 
-
-[Serializable]
-public class TileDictionary : Dictionary<Vector3, Tile3D> { }
-
-[Serializable]
-public class WallDictionary : Dictionary<Vector3, Wall3D> { }
-
-[Serializable]
-public class EntityDictionary : Dictionary<Vector3, Entity3D> { }
-
-
 [ExecuteInEditMode]
 public class Grid3D : MonoBehaviour
 {
@@ -108,7 +97,7 @@ public class Grid3D : MonoBehaviour
         }
         //if (e.type != EventType.Layout && e.type != EventType.Repaint && e.type != EventType.MouseMove)
         //    Debug.Log($"insideWindow: {insideWindow}, editTiles:{editTiles}, Selected:{Selection.activeGameObject == gameObject}, e.Type:{e.type}");
-        
+
         if (insideWindow && editTiles && Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Grid3D>() != null)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
@@ -146,7 +135,7 @@ public class Grid3D : MonoBehaviour
             }
         }
     }
-    
+
     public static IEnumerable<Vector3> GetTileSizePositions(Vector3 position, Vector3 size)
     {
         for (int x = 0; x < size.x; x++)
@@ -231,6 +220,50 @@ public class Grid3D : MonoBehaviour
         }
     }
 
+    //public GridableGrid3D<Gridable3D> GetGridableGridFor(Type gridable)
+    //{
+    //    switch (gridable)
+    //    {
+    //    }
+    //}
+
+    public GridableGrid3D<Gridable3D> GetGridableGridFor(Gridable3D gridable)
+    {
+        switch (gridable)
+        {
+            case Entity3D entity:
+                return (GridableGrid3D<Gridable3D>)EntityGrid;
+            case Tile3D tile:
+                return (GridableGrid3D<Gridable3D>)TileGrid;
+            case Wall3D wall:
+                return (GridableGrid3D<Gridable3D>)WallGrid;
+            case Floor3D floor:
+                return (GridableGrid3D<Gridable3D>)FloorGrid;
+            default:
+                throw new ArgumentException(nameof(gridable));
+            case null:
+                throw new ArgumentNullException(nameof(gridable));
+        }
+    }
+
+
+    public List<GridableGrid3D<Gridable3D>> GetCollisionLayersForGridable(Gridable3D gridable)
+    {
+        switch (gridable)
+        {
+            case Entity3D entity3D:
+            case Tile3D tile3D:
+                return new List<GridableGrid3D<Gridable3D>> { (GridableGrid3D<Gridable3D>)EntityGrid, (GridableGrid3D<Gridable3D>)TileGrid };
+            case Floor3D floor3D:
+                return new List<GridableGrid3D<Gridable3D>> { (GridableGrid3D<Gridable3D>)FloorGrid };
+            case Wall3D wall3D:
+                return new List<GridableGrid3D<Gridable3D>> { (GridableGrid3D<Gridable3D>)WallGrid };
+            default:
+                throw new ArgumentException(nameof(gridable));
+            case null:
+                throw new ArgumentNullException(nameof(gridable));
+        }
+    }
 }
 
 public static class Grid3DExtensionMethods
@@ -275,7 +308,6 @@ public static class Grid3DExtensionMethods
 
         return final;
     }
-
     public static Vector3 ToFixedVector3(this Vector3 pos)
     {
         return new Vector3(Mathf.CeilToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.CeilToInt(pos.z));
